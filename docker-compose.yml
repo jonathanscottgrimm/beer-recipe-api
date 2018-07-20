@@ -1,0 +1,8 @@
+version: '3.4'
+
+services:
+  beerapibackend:
+    image: ${DOCKER_REGISTRY}beerapibackend
+    build:
+      context: .
+      dockerfile: BeerApiBackend\Dockerfile
