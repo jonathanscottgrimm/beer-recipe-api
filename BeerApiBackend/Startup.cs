@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using BeerApiBackend.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
+using Swashbuckle.AspNetCore.Swagger;
 
 namespace BeerApiBackend
 {
@@ -24,6 +21,35 @@ namespace BeerApiBackend
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc();
+            services.AddDbContext<BeerAppDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("BeerAppDbContext")));
+            services.AddTransient<Beer_contextDAL, Beer_contextDAL>();
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new Info
+                {
+                    Title = "Beer Recipe API",
+                    Version = "v1",
+                    Description = "Backend API for Beer Recipe App",
+                    Contact = new Contact
+                    {
+                        Name = "Jonathan Grimm",
+                        Email = "jonathanscottgrimm@gmail.com"
+                    },
+                    License = new License
+                    {
+                        Name = "Jonathan Grimm. All rights reserved."
+                    }
+                });
+            });
+
+            services.AddCors(options =>
+            {
+                options.AddPolicy("CorsPolicy",
+                    builder => builder.AllowAnyOrigin()
+                    .AllowAnyMethod()
+                    .AllowAnyHeader()
+                    .AllowCredentials());
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -33,8 +59,17 @@ namespace BeerApiBackend
             {
                 app.UseDeveloperExceptionPage();
             }
-
+            
+            app.UseCors("CorsPolicy");
             app.UseMvc();
+            app.UseSwagger();
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Beer Recipe API V1");
+                // Sets swagger as the default startup page.
+                c.RoutePrefix = string.Empty;
+            });
         }
     }
+
 }
